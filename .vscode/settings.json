@@ -1,0 +1,19 @@
+{
+    "coqtop.binPath": "C:/Coq-Platform~8.18~2023.11/bin",
+    "coqtop.args": [
+        "-noinit",
+        "-indices-matter",
+        "-type-in-type",
+        "-w",
+        "-notation-overridden",
+        "-Q",
+        "C:/Coq-Platform~8.18~2023.11/bin",
+        "UniMath"
+    ],
+    "coq.format.indentAfterBullet": "indent",
+    "coq.format.unindentOnCloseProof": true,
+    "coq.format.indentAfterOpenProof": true,
+    "editor.formatOnType": true,
+    "editor.unicodeHighlight.ambiguousCharacters": false,
+    "editor.tabSize": 2
+}

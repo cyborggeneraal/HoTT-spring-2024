@@ -81,7 +81,9 @@ Qed.
 
 Theorem assoc {P Q R : UU} (c : (P × Q) × R ) : P × (Q × R).
 Proof.
-Admitted.
+  induction c as [[p q] r].
+  exact (p,,(q,,r)).
+Qed.
 
 (* ~Admitted.~ tells Coq that you are not going to leave this proof empty for now, so I will use it in places where I want you to add a proof. *)
 
@@ -91,7 +93,11 @@ Admitted.
 
 Theorem comp {P Q R : UU} (f : P → Q) (g : Q → R) : P → R.
 Proof.
-Admitted.
+  intro p.
+  apply g.
+  apply f.
+  exact p.
+Qed.
 
 (* Exercise 6 *)
 
@@ -99,7 +105,9 @@ Admitted.
 
 Theorem weirdModusPonens {P Q : UU} : ((P → Q) × P → (P × Q)).
 Proof.
-Admitted.
+  intros [f p].
+  exact (p,,f p).
+Qed.
 
 (* Exercise 7 *)
 
@@ -120,6 +128,8 @@ Print modusPonens.
 
 Definition identity (P : UU) : P → P.
 Proof.
-Admitted.
+intro p.
+exact p.
+Qed.
 
 Print identity.
