@@ -82,19 +82,25 @@ Print add.
 Definition boolRep : bool → UU.
 (* Send false to empty, the type with no constructors and true to unit, the type with one constructor. *)
 Proof.
-  Admitted.
+  intros [|]; [exact unit | exact empty].
+Defined.
 
 (* Exercise 6 *)
 
 Definition ι : bool → nat.
 Proof.
-  Admitted.
+  intros [|]; [exact 1 | exact 0].
+Qed.
 
 (* Exercise 7 *)
 
 Definition mod2 : nat → bool.
 Proof.
-  Admitted.
+  intros n.
+  induction n as [| p hp].
+  - exact false.
+  - exact (not hp).
+Defined.  
 
 Compute (mod2 15).
 (* Should be true (aka 1) *)
@@ -105,7 +111,11 @@ Compute (mod2 20).
 
 Definition mult : nat → nat → nat.
 Proof.
-  Admitted.
+  intros n m.
+  induction m as [| p hp].
+  - exact 0.
+  - exact (add hp n).
+Defined.   
 
 Compute (mult 2 3).
 
@@ -113,7 +123,15 @@ Compute (mult 2 3).
 
 Definition leq : nat → nat → bool.
 Proof.
-  Admitted.
+  intros n.
+  induction n as [| p hp].
+  - intros m.
+    exact true.
+  - intros m.
+    induction m as [| q hq].
+  -- exact false.
+  -- exact (hp q).     
+Defined.
 
 Compute (leq 0 0).
 Compute (leq 0 1).
@@ -128,7 +146,12 @@ Compute (leq 3 2).
 
 Theorem leqrefl : ∏ (n : nat) , boolRep (leq n n).
 Proof.
-  Admitted.
+  intro n.
+  induction n as [| p hp].
+  - exact tt.
+  - exact hp.
+Qed.  
+
 
 (* Exercise 11 *)
 
@@ -137,17 +160,24 @@ Define ≤ inductively as:
 Inductive leqUU : nat → nat → UU := ...
 *)
 
+Inductive leqUU : nat -> nat -> UU :=
+| leqUUrefl : forall x : nat, leqUU 0 x 
+| leqUUsucc : forall x y : nat, leqUU x y -> leqUU (S x) (S y)
+.
+
 Theorem leqbooltotype : ∏ (n m : nat) , boolRep (leq n m) → leqUU n m.
 Proof.
-  Admitted.
-
-
-
-
-
-
-
-
-
-
-
+  intros n.
+  induction n as [| p hp].
+  - intros m h1.
+    exact (leqUUrefl m).
+  - intros m.
+    induction m as [| q hq].
+  -- simpl.
+     intros []. 
+  -- simpl.
+     intros h1.
+     apply leqUUsucc.
+     apply hp.
+     exact h1.
+Qed.
