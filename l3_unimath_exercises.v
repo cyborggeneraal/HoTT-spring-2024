@@ -101,31 +101,118 @@ Defined.
 (* Exercise 8 *)
 
 Theorem complicatedTransport {A : UU} {D : A → UU} {a b c : A} (p : a = b) (q : b = c) (d : D c) : D a.
-Admitted.
+Proof.
+  apply (@transport A _ b a); [..| apply (symmetric_paths A _ _ p)].
+  apply (@transport A _ c b); [..| apply (symmetric_paths A _ _ q)].
+  exact d.
+Qed.
 
 (* Exercise 9 *)
 
 Lemma add_S_comm : ∏ n m : nat , n + S m = S (n + m).
 Proof.
-Admitted.
+  intros n m.
+  induction n as [|p hp].
+  - simpl.
+    apply idpath.
+  - simpl.
+    apply (ap S hp).
+    (* apply (@transport nat (fun x:nat => S (p + S m) = S x) (p + S m) (S (p + m)));
+      [..| apply hp].
+    apply idpath.   *)
+Qed.
 
 Theorem add_comm : ∏ n m : nat , n + m = m + n.
 Proof.
-Admitted.
+  intros n.
+  induction n as [|p hp].
+  - intros m.
+    induction m as [|q hq]. 
+  -- apply idpath.
+  -- simpl.
+     apply ap.
+     apply (symmetric_paths nat _ _ (right_unit _)).
+  - intros m.
+    induction m as [|q hq].
+  -- simpl.
+     apply ap.
+     apply right_unit.
+  -- simpl.
+     apply ap.
+     apply (transitive_paths _ _ _ _ (add_S_comm _ _)).
+     apply hq.
+Qed.
+    
 
 (* Exercise 9 *)
 
 Theorem mul_left_id : ∏ n : nat , mul 1 n = n.
 Proof.
-Admitted.
+  intros n.
+  apply idpath.
+Qed.
 
 (* Exercise 10 *)
 
+Theorem succ_eq_add_one : ∏ n : nat , S n = n + 1.
+Proof.
+  intros n.
+  induction n as [|p hp].
+  - apply idpath.
+  - simpl. 
+    apply ap.
+    exact hp.
+Qed.
+
+
 Theorem mul_right_id : ∏ n : nat , mul n 1 = n.
 Proof.
-Admitted.
+  intros n.
+  induction n as [|p hp].
+  - apply idpath.
+  - simpl.
+    apply (transitive_paths _ _ _ _ (symmetric_paths _ _ _ (succ_eq_add_one _))).
+    apply ap.
+    exact hp.  
+Qed.
 
 (* Exercise 11 *)
 
+Theorem mul_zero : ∏ (n : nat), n * 0 = 0.
+Proof.
+  intros n.
+  induction n as [| p hp].
+  - apply idpath.
+  - simpl.
+    induction (symmetric_paths _ _ _ (right_unit (p*0))).
+    apply hp.
+Qed.  
+
+Theorem mul_succ : ∏ (n m : nat), n * S m = n * m + n.
+Proof.
+  intros n m.
+  induction n as [| p hp].
+  - apply idpath.
+  - simpl.  
+
+Theorem mul_comm : ∏ (n m : nat), n * m = m * n.
+Proof.
+  intros n m.
+  induction n as [| p hp].
+  - simpl.
+    exact (! (mul_zero m)).
+  - simpl.
+    induction ()   
+
 (* Define what is means to be divisible by 2 and divisible by 4, and show that being divisible by 4 implies being divisible by 2. *)
-     
+Inductive divisibleBy (d : nat) : nat -> UU :=
+  Divides : ∏ n : nat, (∑ m : nat, d * m = n) -> divisibleBy d n.
+    
+Theorem div_by_4_imp_div_by_2 : ∏ n : nat, divisibleBy 4 n -> divisibleBy 2 n.
+Proof.
+  intros n h.
+  induction h as [n h].
+  induction h as [m h].
+  apply Divides.
+  exists (2 * m).
+  simpl. 
