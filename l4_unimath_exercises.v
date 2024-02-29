@@ -9,12 +9,19 @@ Require Export UniMath.Foundations.All.
 
 Theorem neg_neg_bool: negb ∘ negb ~ idfun bool.
 Proof.
-  Admitted.
+  intros [ | ]; apply idpath.
+Qed.
 
 (* Exercise 2 *)
 
 (* Define concat_htpy from Def 9.1.5 in R.*)
-
+Definition concat_htpy {A : UU} {B : A -> UU} 
+    {f g h : ∏ x : A, B x} :
+    f ~ g -> g ~ h -> f ~ h.
+Proof.
+    intros G H x.
+    exact ((G x)@(H x)).
+Defined.
 
 
 Infix "~@~" := concat_htpy (at level 70, no associativity).
@@ -23,7 +30,18 @@ Infix "~@~" := concat_htpy (at level 70, no associativity).
 
 (* Exercise 3 *)
 
+Search "path".
+
 (* Define assoc_htpy from Prop 9.1.6 in R. *)
+Definition assoc_htpy {A B : UU}
+    {f g h p : A -> B}
+    {G : f ~ g} {H : g ~ h} {K : h ~ p} :
+    ((G ~@~ H) ~@~ K) ~ (G ~@~ (H ~@~ K)).
+Proof.
+    intro x.
+    apply pathsinv0.
+    apply path_assoc.
+Qed.
 
 (* Hint: use path_assoc. *)
 
@@ -34,15 +52,25 @@ Infix "~@~" := concat_htpy (at level 70, no associativity).
 
 Theorem unit_iscontr : iscontr unit.
 Proof.
-    Admitted.
+    exists tt.
+    intros [].
+    apply idpath.
+Qed.
 
 (* Exercise 5 *)
 
 Lemma unit_is_prop (x y : unit) : iscontr (x = y).
 Proof.
-    Admitted.
-
-
+    induction x.
+    use (tpair).
+    - induction y.
+      apply idpath.
+    - simpl.
+      intro t.
+      induction t.
+      apply idpath.  
+Qed.
+    
 (* Exercise 6 *)
 
 (* ~weq A B~ is the type of contractible maps from A to B. You can also write ~A ≃ B~ where ≃ is written as ~\simeq~.*)
@@ -51,11 +79,17 @@ Proof.
 
 Theorem inverse {A B : UU} (e : A ≃ B) : B → A.
 Proof.
-    Admitted.
+    intros b.
+    induction e as [f weqf].
+    induction (weqf b) as [fib _].
+    induction fib as [a _].
+    exact a.
+Qed.
 
 (* Exericse 7 *)
 
 (* Show Theorem 9.3.4 from R. Use ~weq~ for the notion of equivalence. You can prove this directly or use ~isweq_iso~. Solutions to both approaches are provided, so try both if you are looking for extra exercises.*)
+pair-eq {A : UU} {B : A -> UU} {∏ (s t : ∑ x : A, B x)}
 
 (* Hints: - use ~transportf~.
           - cbn (similar to simpl) was necessary in my proof where sometimes simpl didn't work. 
