@@ -89,7 +89,87 @@ Qed.
 (* Exericse 7 *)
 
 (* Show Theorem 9.3.4 from R. Use ~weq~ for the notion of equivalence. You can prove this directly or use ~isweq_iso~. Solutions to both approaches are provided, so try both if you are looking for extra exercises.*)
-pair-eq {A : UU} {B : A -> UU} {∏ (s t : ∑ x : A, B x)}
+Definition Eq_Sigma {A : UU} {B : A -> UU} (s t : ∑ x : A, B x) : UU :=
+    ∑ α : pr1 s = pr1 t, transportf B α (pr2 s) = pr2 t.
+
+Definition pair_eq {A : UU} {B : A -> UU} {s t : ∑ x : A, B x} : (s = t) ->
+    Eq_Sigma s t.
+Proof.
+    intro hst.
+    induction s as [s1 s2].
+    induction t as [t1 t2].
+    induction hst.
+    exists (idpath s1).
+    apply idpath.
+Defined.
+
+Definition eq_pair {A : UU} {B : A -> UU} {s t : ∑ x : A, B x} : 
+    Eq_Sigma s t -> s = t.
+Proof.
+    intros [α h].
+    induction s as [s1 s2].
+    induction t as [t1 t2].
+    simpl in α.
+    induction α.
+    simpl in h.
+    induction h.
+    apply idpath.
+Defined.
+
+Theorem pair_eq_weq {A : UU} {B : A -> UU} : ∏ s t : ∑ (x : A), B x,
+    s = t ≃ Eq_Sigma s t.
+Proof.
+    intros [s1 s2] [t1 t2].
+    exists pair_eq.
+    apply (isweq_iso _ eq_pair).
+    - intro x.
+      induction x.
+      simpl.
+      apply idpath.
+    - intro y.
+      unfold Eq_Sigma in y.
+      induction y as [α h].
+      simpl in α.
+      induction α.
+      simpl in h.
+      induction h.
+      cbn.
+      apply idpath.
+Qed.
+
+Theorem pair_eq_weq' {A : UU} {B : A -> UU} : ∏ s t : ∑ (x : A), B x,
+    s = t ≃ @Eq_Sigma A B s t.
+Proof.
+    intros s t.
+    use tpair. apply pair_eq. simpl.
+    intro y.
+    use tpair.
+    - use tpair.
+    -- apply eq_pair.
+       exact y.
+    -- simpl.
+       induction y as [y hy].
+       induction s as [s1 s2].
+       induction t as [t1 t2].
+       simpl in y.
+       simpl in hy.
+       induction y.
+       induction hy.
+       simpl.
+       apply idpath.
+    - simpl.
+      intro x.
+      simpl.
+      induction x as [x hx].
+      induction x.
+      induction hx.
+      cbn.
+      apply idpath.
+Qed.
+
+      
+      
+      
 
 (* Hints: - use ~transportf~.
           - cbn (similar to simpl) was necessary in my proof where sometimes simpl didn't work. 
@@ -99,6 +179,46 @@ pair-eq {A : UU} {B : A -> UU} {∏ (s t : ∑ x : A, B x)}
 
 (* Every contractible type is equivalent to the unit.*)
 
+Theorem contr_to_path {A : UU} (C : iscontr A) (x y : A) : x = y.
+Proof.
+    induction C as [c h].
+    exact ((h x) @ !(h y)).
+Qed.
+
+Definition const {A B : UU} : A -> B -> A :=
+    λ (x : A) (y : B), x.
+
+Theorem paths_in_unit (p : tt = tt) : p = idpath tt.
+Proof.
+    apply contr_to_path.
+    apply unit_is_prop.
+Qed.
+    
+
 Theorem contr_equiv_unit {C : UU} {h : iscontr C} : C ≃ unit.
 Proof.
-    Admitted.
+    unfold weq.
+    use tpair.
+    - intro c.
+      exact tt.
+    - simpl.
+      unfold isweq.
+      intros [].
+      unfold iscontr in *.
+      induction h as [c h1].
+      use tpair.
+    -- unfold hfiber.
+       use tpair.
+    --- exact c.
+    --- simpl.
+        apply idpath.
+    -- simpl.
+       intros [x h2].
+       rewrite (paths_in_unit h2).
+       rewrite (h1 x).
+       apply idpath.
+Qed.
+
+     
+    
+    
