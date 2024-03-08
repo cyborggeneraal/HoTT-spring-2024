@@ -61,6 +61,16 @@ Proof.
 
 (* Show that if two types are equivalent and one is contractible, then the other is. *)
 
+Theorem equiv_pres_contract {A B : UU} : A ≃ B → iscontr A → iscontr B.
+Proof.
+  intros [f weq_f] [a ha].
+  exists (f a).
+  intro b.
+  induction (weq_f b) as [[c []] _].
+  apply maponpaths.
+  apply ha.
+Qed.
+
 (* These proofs are starting to get more complicated, so you might want to the tactics `assert` or `transparent assert`. They basically let you prove small lemmas within your proof. If the lemma is not very small, I recommend making it a real lemma outside of your proof.*)
 (* For assert you type 
 `assert (x : T).`
@@ -71,9 +81,40 @@ Note the extra parentheses.
 *)
 
 (* Exercise 3 *)
-
+Theorem equiv_fam_iff_equiv_tot {A : UU} {B C : A → UU}
+  (f : ∏ x : A, B x → C x) :
+  (∏ x : A, isweq (f x)) <-> isweq (tot f).
+Proof.
+  split.
+  - intro weq_fx.
+    intros y.
+    apply (@equiv_pres_contract (hfiber (f (pr1 y)) (pr2 y))).
+  -- apply weqinvweq.
+     apply equiv_fib. 
+  -- induction y as [a c].
+     unfold isweq in weq_fx.
+     simpl.
+     exact (weq_fx a c).
+  - intros weq_totf a y.
+    eapply (equiv_pres_contract _ (weq_totf (a,, y))).
+    Unshelve.
+    apply equiv_fib.
+Qed.
+    
 (* Show Theorem 11.1.3 of Rijke. *)
 
 (* Exercise 4 *)
 
 (* Show Thm 11.4.2 of Rijke. *)
+
+Definition isemb {A B : UU} (f : A → B) :=
+  ∏ x y : A, isweq (@maponpaths A B f x y).
+
+Theorem equiv_is_embed {A B : UU} :
+  ∏ f : A → B, isweq f → isemb f.
+Proof.
+  intros f h x.
+  assert (f' := λ y : A, @maponpaths _ _ f x y).
+  apply (pr2 (equiv_fam_iff_equiv_tot f')).
+  
+  
