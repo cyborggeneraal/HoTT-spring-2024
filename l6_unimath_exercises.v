@@ -1,6 +1,5 @@
 Require Export UniMath.Foundations.All.
 
-Require Import l4_unimath_exercises.
 
 (* Exercise 1 *)
 
@@ -48,10 +47,9 @@ Print isaprop.
 Theorem Ex4 {A : UU} {n : nat}: isofhlevel n A → isofhlevel (S(n)) A.
   generalize A.
   induction n as [| p hp].
-  - intros h.
-    apply Ex2.
+  - intros B.
+    exact Ex2.
   - intros B h2.
-    simpl in *.
     intros x y e1 e2.
     apply hp.
     apply h2.
