@@ -72,9 +72,7 @@ Defined.
 Definition f2' {P : UU} : (∏ x y : P, x = y) → (isaprop P).
 Proof.
   intros h x y.
-  simpl.
-  exists (h x y).
-  intro t.
+  induction (h x y).
 Admitted.
 
 
@@ -132,9 +130,8 @@ Lemma ex5 {A B : UU} {f : A → B} {y : B} {c : hfiber f y} (h1 h2 : ∏ t : hfi
 Proof.
   apply funextsec.
   intro x.
-  induction (h1 x).
-  induction x as [x hx].
 Admitted.
+
 
 Theorem isweq_is_prop {A B : UU} (f : A → B) : isaprop (isweq f).
 Proof.
@@ -177,7 +174,13 @@ Proof.
     simpl in *.
     apply hq.
 Defined.
-    
+
+Lemma char_pair {A : UU} {B : A → UU} {a : A} {b b' : B a} : 
+  b = b' → (a ,, b) = (a ,, b').
+Proof.
+  intros [].
+  apply idpath.
+Qed. 
 
 Theorem equiv_of_prop {P Q : hProp} : (P ≃ Q) ≃ (P <-> Q).
 Proof.
@@ -187,5 +190,16 @@ Proof.
     unfold isweq in h.
     unfold f6.
     unfold f6'.
+    induction P as [P hp].
+    induction Q as [Q hq].
+    admit.
+  - intros [h1 h2].
+    unfold f6'.
+    unfold f6.
+    unfold invmap.
+    simpl.
+    apply idpath.
+  Admitted.
+    
     
     
