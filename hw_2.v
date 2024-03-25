@@ -78,7 +78,9 @@ Admitted.
 
 Theorem prop_thm {P : UU} : (isaprop P) ≃ (∏ x y : P, x = y).
 Proof.
-  Admitted.
+  exists f2.
+  intro y.
+Admitted.
 
 (* Exercise 3 *)
 
@@ -181,6 +183,14 @@ Proof.
   intros [].
   apply idpath.
 Qed. 
+
+Lemma char_pair_fst {A : UU} {B : A → UU} {a a' : A} {b : B a} {b' : B a'} 
+  : (a,, b) = (a',, b') → a = a'.
+Proof.
+  intros e.
+  apply (@maponpaths (∑ a : A, B a) A pr1 (a,, b) (a' ,, b')).
+  exact e.
+Qed.
 
 Theorem equiv_of_prop {P Q : hProp} : (P ≃ Q) ≃ (P <-> Q).
 Proof.
