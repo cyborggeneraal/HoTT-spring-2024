@@ -79,16 +79,14 @@ Defined.
 
 Lemma iscontr_iscontr {A : UU} : iscontr A → iscontr (iscontr A).
 Proof.
-  intros x.
-  exists x.
+  intros [c hc].
+  exists (c,, hc).
   intros [c' hc'].
-  assert (H := @hlevel_cumulative 1 A (@hlevel_cumulative 0 A x)).
-  induction x as [c hc].
-  simpl in H.
   induction (hc' c).
   assert (hc' = hc).
   - apply funextsec.
     intro x.
+    assert (H := @hlevel_cumulative 1 A (@hlevel_cumulative 0 A (c,, hc))).
     apply (f2 (H x c)).
   - induction X.
     apply idpath.
@@ -126,12 +124,10 @@ Search "invmap".
 Theorem Prop_12_1_4 (P Q : hProp) : (P ≃ Q) <-> (P <-> Q).
 Proof.
   split.
-  - intros h.
+  - intros [f hf].
     split.
-  -- induction h as [f _].
-     exact f.
+  -- exact f.
   -- intro q.
-     induction h as [f hf].
      induction (hf q) as [c _].
      induction c as [p _].
      exact p.
@@ -154,8 +150,7 @@ Theorem prop_commutes_Π {A : UU} {B : A → UU} (p : ∏ x : A, isaprop (B x)) 
 Proof.
   apply f2'.
   intros f g.
-  apply funextsec.
-  intro x.
+  apply funextsec; intro x.
   apply f2.
   apply p.
 Qed.
@@ -177,8 +172,7 @@ Proof.
   apply f2'.
   intros p q.
   unfold isweq in *.
-  apply funextsec.
-  intro x.
+  apply funextsec; intro x.
   apply f2.
   apply hlevel_cumulative.
   simpl.
