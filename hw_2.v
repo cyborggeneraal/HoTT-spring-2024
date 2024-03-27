@@ -52,17 +52,13 @@ Proof.
 
 Lemma contr_to_path {C : UU} (h : iscontr C) (x y : C) : x = y.
 Proof.
-  induction h as [c h].
-  exact (h x @ ! h y).
-Qed.
+  Admitted.
 
 (* From here on, all `Admitted.`s should be filled in with proofs. As always, don't change the statements of any Theorems below, but you can always prove extra Lemmas to help. *)
 
 (* Exercise 2 *)
 
 (* Show that the definitions of proposition are equivalent. *)
-
-Search "isweq".
 
 Definition f2 {P : UU} : (isaprop P) → (∏ x y : P, x = y).
 Proof.
@@ -74,7 +70,6 @@ Defined.
 Definition f2' {P : UU} : (∏ x y : P, x = y) → (isaprop P).
 Proof.
   intros h x y.
-  simpl.
   apply (@hlevel_cumulative 0).
   simpl.
   exists y.
@@ -82,21 +77,36 @@ Proof.
   exact (h t y).
 Defined.
 
+Lemma iscontr_iscontr {A : UU} : iscontr A → iscontr (iscontr A).
+Proof.
+  intros x.
+  exists x.
+  intros [c' hc'].
+  assert (H := @hlevel_cumulative 1 A (@hlevel_cumulative 0 A x)).
+  induction x as [c hc].
+  simpl in H.
+  induction (hc' c).
+  assert (hc' = hc).
+  - apply funextsec.
+    intro x.
+    apply (f2 (H x c)).
+  - induction X.
+    apply idpath.
+Qed.
 
 Theorem prop_thm {P : UU} : (isaprop P) ≃ (∏ x y : P, x = y).
 Proof.
   exists f2.
   apply (isweq_iso f2 f2').
   - intro h.
-    unfold f2.
-    unfold f2'.
+    unfold isaprop in h.
     apply funextsec.
     intro x.
     apply funextsec.
     intro y.
-    unfold isaprop in h.
     simpl in h.
-    apply (isapropisofhlevel 0 (x = y)).
+    induction (iscontr_iscontr (h x y)) as [c hp].
+    exact (hp (f2' (f2 h) x y) @ !hp (h x y)).
   - intros f.
     assert (H := hlevel_cumulative (f2' f)).
     simpl in H.
@@ -120,17 +130,19 @@ Proof.
     split.
   -- induction h as [f _].
      exact f.
-  -- exact (invmap h).
+  -- intro q.
+     induction h as [f hf].
+     induction (hf q) as [c _].
+     induction c as [p _].
+     exact p.
   - intros [f g].
     exists f.
     eapply (isweq_iso f g).
   -- intro x.
-     induction P as [P hp].
-     simpl in *.
+     induction P as [P hp]; simpl in *.
      apply hp.
   -- intro y.
-     induction Q as [Q hq].
-     simpl in *.
+     induction Q as [Q hq]; simpl in *.
      apply hq.
 Qed.
 
@@ -148,21 +160,17 @@ Proof.
   apply p.
 Qed.
 
+Lemma prop_commutes_fun {A : UU} {B : hProp} : isaprop (A → B).
+Proof.
+  apply prop_commutes_Π.
+  intro a.
+  induction B as [B hb]; simpl in *.
+  exact hb.
+Qed.
+
 (* Exercise 5 *)
 
 (* Show that isweq f (is-contr f in Rijke) is a proposition. *)
-
-Lemma ex5 {A B : UU} {f : A → B} {y : B} {c : hfiber f y} (h1 h2 : ∏ t : hfiber f y, t = c) :
-  h1 = h2.
-Proof.
-  apply funextsec.
-  intro x.
-  apply contr_to_path.
-  exists (h1 x).
-  intro t.
-  induction t.
-Admitted.
-
 
 Theorem isweq_is_prop {A B : UU} (f : A → B) : isaprop (isweq f).
 Proof.
@@ -171,11 +179,11 @@ Proof.
   unfold isweq in *.
   apply funextsec.
   intro x.
-  induction (p x) as [c hp].
-  induction (q x) as [c' hq].
-  induction (hq c).
-  induction (ex5 hp hq).
-  apply idpath.
+  apply f2.
+  apply hlevel_cumulative.
+  simpl.
+  apply iscontr_iscontr.
+  exact (p x).
 Qed.
 
 (* Exercise 6 *)
@@ -188,7 +196,10 @@ Proof.
   split.
   - induction h as [f _].
     exact f.
-  - exact (invmap h).
+  - intro q.
+    induction h as [f hf].
+    induction (hf q) as [[p _] _].
+    exact p. 
 Defined.
 
 Definition f6' {P Q : hProp} : (P <-> Q) → (P ≃ Q).
@@ -206,19 +217,14 @@ Proof.
     apply hq.
 Defined.
 
-Lemma char_pair {A : UU} {B : A → UU} {a : A} {b b' : B a} : 
-  b = b' → (a ,, b) = (a ,, b').
+Lemma prop_commutes_prod {A B : UU} : isaprop A → isaprop B → isaprop (A × B).
 Proof.
-  intros [].
+  intros h1 h2.
+  apply f2'.
+  intros [x1 x2] [y1 y2].
+  induction (f2 h1 x1 y1).
+  induction (f2 h2 x2 y2).
   apply idpath.
-Qed. 
-
-Lemma char_pair_fst {A : UU} {B : A → UU} {a a' : A} {b : B a} {b' : B a'} 
-  : (a,, b) = (a',, b') → a = a'.
-Proof.
-  intros e.
-  apply (@maponpaths (∑ a : A, B a) A pr1 (a,, b) (a' ,, b')).
-  exact e.
 Qed.
 
 Theorem equiv_of_prop {P Q : hProp} : (P ≃ Q) ≃ (P <-> Q).
@@ -226,26 +232,14 @@ Proof.
   exists f6.
   apply (isweq_iso f6 f6').
   - intros h.
-    apply contr_to_path.
-    exists h.
-    intro t.
-    Search "isaprop_total".
-    unfold weq in h.
-    assert (isaprop (P -> Q)).
-  -- apply prop_commutes_Π.
-     intro p.
-     induction Q as [Q hq].
-     simpl.
-     exact hq.
-  -- induction (isaprop_total2 ((P → Q),, X) (λ x, (isweq x,, isweq_is_prop x)) t h) as [c _].
-     exact c. 
-  - intros [h1 h2].
-    unfold f6'.
-    unfold f6.
-    unfold invmap.
-    simpl.
+    induction (f6' (f6 h)) as [f hf].
+    induction (h) as [f' hf'].
+    induction (f2 (prop_commutes_fun) f f').
+    induction (f2 (isweq_is_prop f) hf hf').
     apply idpath.
-  Qed.
+  - intros [h1 h2].
+    apply idpath.
+Qed.
     
     
     
