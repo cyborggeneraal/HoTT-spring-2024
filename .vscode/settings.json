@@ -1,19 +1,14 @@
 {
-    "coqtop.binPath": "C:/Coq-Platform~8.18~2023.11/bin",
-    "coqtop.args": [
+    "vscoq.path": "/home/cyborggeneraal/.opam/4.14.1/bin/vscoqtop",
+    "vscoq.args": [
         "-noinit",
         "-indices-matter",
         "-type-in-type",
         "-w",
         "-notation-overridden",
         "-Q",
-        "C:/Coq-Platform~8.18~2023.11/bin",
+        "/home/cyborggeneraal/.opam/4.14.1/lib/coq/user-contrib/UniMath",
         "UniMath"
     ],
-    "coq.format.indentAfterBullet": "indent",
-    "coq.format.unindentOnCloseProof": true,
-    "coq.format.indentAfterOpenProof": true,
-    "editor.formatOnType": true,
-    "editor.unicodeHighlight.ambiguousCharacters": false,
-    "editor.tabSize": 2
+
 }
