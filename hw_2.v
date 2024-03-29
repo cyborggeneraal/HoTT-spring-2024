@@ -60,7 +60,7 @@ Proof.
 
 (* Show that the definitions of proposition are equivalent. *)
 
-Definition f2 {P : UU} : (isaprop P) → (∏ x y : P, x = y).
+Definition isaprop_to_irrelevance {P : UU} : (isaprop P) → (∏ x y : P, x = y).
 Proof.
   intros h x y.
   induction (h x y) as [c _].
@@ -84,12 +84,14 @@ Proof.
   intros [c' hc'].
   induction (hc' c).
   assert (hc' = hc).
-  - apply funextsec.
+  {
+    apply funextsec.
     intro x.
     assert (H := @hlevel_cumulative 1 A (@hlevel_cumulative 0 A (c,, hc))).
     apply (f2 (H x c)).
-  - induction X.
-    apply idpath.
+  }
+  induction X.
+  apply idpath.
 Qed.
 
 Theorem prop_thm {P : UU} : (isaprop P) ≃ (∏ x y : P, x = y).
