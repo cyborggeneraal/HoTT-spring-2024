@@ -6,7 +6,6 @@ Require Export UniMath.Foundations.All.
 
 (* Show that equalities of subtypes are the same as the equalities in the super types. *)
 
-
 (* Exercise 2 *)
 
 (* Show univalence for sets. *)

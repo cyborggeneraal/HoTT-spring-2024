@@ -21,13 +21,13 @@ Proof.
 (* 1b. Exercise 9.2a *)
 Definition const {A : UU} (a : A) : A → A.
 Proof.
-  Admitted.
+  intro a'.
+  exact a.
+Qed.
 
 Theorem Ex_9_2_a (b : bool) : isweq (const b).
 Proof.
   Admitted.
-
-Search "retract".
 
 (* 1c. Exercise 9.4a *)
 Definition has_retract {A B : UU} (f : A → B) : UU := ∑ g : B → A, g ∘ f ~ idfun A.
@@ -40,6 +40,24 @@ Proof.
   Admitted.
 
 (* 1d. Exercise 9.9a *)
+Definition repeated_composition {X : UU} (f : X → X) (n : nat) : X → X.
+Proof.
+  induction n as [| p f'].
+  {
+    exact (idfun X).
+  }
+  {
+    exact (f' ∘ f).
+  }
+Defined.
+
+Definition is_finitely_cyclic {X : UU} (f : X → X) : UU :=
+  ∏ x y : X, ∑ k : nat, repeated_composition f k x = y.
+
+Theorem Ex_9_9_a {X : UU} {f : X → X} (h : is_finitely_cyclic f) :
+  isweq f.
+Proof.
+  Admitted.
 
 (**************************************************************)
 
@@ -67,14 +85,14 @@ Proof.
   exact c.
 Defined.
 
-Definition f2' {P : UU} : (∏ x y : P, x = y) → (isaprop P).
+Definition irrelevance_to_isaprop {P : UU} : (∏ x y : P, x = y) → (isaprop P).
 Proof.
-  intros h x y.
+  intros h x' y'.
   apply (@hlevel_cumulative 0).
   simpl.
-  exists y.
+  exists y'.
   intro t.
-  exact (h t y).
+  exact (h t y').
 Defined.
 
 Lemma iscontr_iscontr {A : UU} : iscontr A → iscontr (iscontr A).
@@ -88,7 +106,7 @@ Proof.
     apply funextsec.
     intro x.
     assert (H := @hlevel_cumulative 1 A (@hlevel_cumulative 0 A (c,, hc))).
-    apply (f2 (H x c)).
+    apply (isaprop_to_irrelevance (H x c)).
   }
   induction X.
   apply idpath.
@@ -96,25 +114,21 @@ Qed.
 
 Theorem prop_thm {P : UU} : (isaprop P) ≃ (∏ x y : P, x = y).
 Proof.
-  exists f2.
-  apply (isweq_iso f2 f2').
+  exists isaprop_to_irrelevance.
+  apply (isweq_iso isaprop_to_irrelevance irrelevance_to_isaprop).
   - intro h.
-    unfold isaprop in h.
-    apply funextsec.
-    intro x.
-    apply funextsec.
-    intro y.
-    simpl in h.
+    apply funextsec; intro x.
+    apply funextsec; intro y.
     induction (iscontr_iscontr (h x y)) as [c hp].
-    exact (hp (f2' (f2 h) x y) @ !hp (h x y)).
+    exact (hp (irrelevance_to_isaprop (isaprop_to_irrelevance h) x y) @ !hp (h x y)).
   - intros f.
-    assert (H := hlevel_cumulative (f2' f)).
+    assert (H := hlevel_cumulative (irrelevance_to_isaprop f)).
     simpl in H.
     apply funextsec.
-    intro x.
+    intro x'.
     apply funextsec.
-    intro y.
-    apply (H x y).
+    intro y'.
+    apply (H x' y').
   Qed.
 
 (* Exercise 3 *)
@@ -135,27 +149,6 @@ Proof.
      exact p.
   - intros [f g].
     exists f.
-    (* intro q.
-    use tpair.
-  -- exists (g q).
-     induction Q as [Q hq]; simpl in *.
-     apply (f2 hq).
-  -- simpl.
-     intros [t []].
-     assert (e : t = g (f t)).
-     {
-      induction P as [P hp]; simpl in *.
-      apply (f2 hp). 
-     }
-     induction e.
-     assert (e : idpath (f t) = f2 (pr2 Q) (f t) (f t)).
-     {
-      induction Q as [Q hq]; simpl in *.
-      assert (hq' := hlevel_cumulative hq).
-      apply (f2 (hq' (f t) (f t))).
-     }
-     rewrite e.
-     apply idpath. *)
     eapply (isweq_iso f g).
   -- intro x.
      induction P as [P hp]; simpl in *.
@@ -171,18 +164,18 @@ Qed.
 
 Theorem prop_commutes_Π {A : UU} {B : A → UU} (p : ∏ x : A, isaprop (B x)) : isaprop (∏ x : A, (B x)).
 Proof.
-  apply f2'.
+  apply irrelevance_to_isaprop.
   intros f g.
   apply funextsec; intro x.
-  apply f2.
+  apply isaprop_to_irrelevance.
   apply p.
 Qed.
 
 Lemma prop_commutes_fun {A : UU} {B : hProp} : isaprop (A → B).
 Proof.
   apply prop_commutes_Π.
-  intro a.
   induction B as [B hb]; simpl in *.
+  intro x.
   exact hb.
 Qed.
 
@@ -192,11 +185,11 @@ Qed.
 
 Theorem isweq_is_prop {A B : UU} (f : A → B) : isaprop (isweq f).
 Proof.
-  apply f2'.
+  apply irrelevance_to_isaprop.
   intros p q.
   unfold isweq in *.
   apply funextsec; intro x.
-  apply f2.
+  apply isaprop_to_irrelevance.
   apply hlevel_cumulative.
   simpl.
   apply iscontr_iscontr.
@@ -207,7 +200,7 @@ Qed.
 
 (* An equivalence between propositions is (equivalent to) a logical equivalence. *)
 
-Definition f6 {P Q : hProp} : (P ≃ Q) → (P <-> Q).
+Definition prop_equiv_to_lequiv {P Q : hProp} : (P ≃ Q) → (P <-> Q).
 Proof.
   intro h.
   split.
@@ -219,43 +212,49 @@ Proof.
     exact p. 
 Defined.
 
-Definition f6' {P Q : hProp} : (P <-> Q) → (P ≃ Q).
+Definition prop_lequiv_to_equiv {P Q : hProp} : (P <-> Q) → (P ≃ Q).
 Proof.
   intros [f g].
   exists f.
   apply (isweq_iso f g).
   - intro x.
-    induction P as [P hp].
-    simpl in *.
+    induction P as [P hp]; simpl in *.
     apply hp.
   - intro y.
-    induction Q as [Q hq].
-    simpl in *.
+    induction Q as [Q hq]; simpl in *.
     apply hq.
 Defined.
 
 Lemma prop_commutes_prod {A B : UU} : isaprop A → isaprop B → isaprop (A × B).
 Proof.
   intros h1 h2.
-  apply f2'.
+  apply irrelevance_to_isaprop.
   intros [x1 x2] [y1 y2].
-  induction (f2 h1 x1 y1).
-  induction (f2 h2 x2 y2).
+  induction (isaprop_to_irrelevance h1 x1 y1).
+  induction (isaprop_to_irrelevance h2 x2 y2).
   apply idpath.
 Qed.
 
 Theorem equiv_of_prop {P Q : hProp} : (P ≃ Q) ≃ (P <-> Q).
 Proof.
-  exists f6.
-  apply (isweq_iso f6 f6').
+  exists prop_equiv_to_lequiv.
+  apply (isweq_iso prop_equiv_to_lequiv prop_lequiv_to_equiv).
   - intros h.
-    induction (f6' (f6 h)) as [f hf].
+    induction (prop_lequiv_to_equiv (prop_equiv_to_lequiv h)) as [f hf].
     induction (h) as [f' hf'].
-    induction (f2 (prop_commutes_fun) f f').
-    induction (f2 (isweq_is_prop f) hf hf').
+    induction (isaprop_to_irrelevance (prop_commutes_fun) f f').
+    induction (isaprop_to_irrelevance (isweq_is_prop f) hf hf').
     apply idpath.
-  - intros [h1 h2].
-    apply idpath.
+  - intros [f g].
+    induction (prop_equiv_to_lequiv(prop_lequiv_to_equiv(f,,g))) as [f' g'].
+    apply isaprop_to_irrelevance.
+    apply prop_commutes_prod.
+    {
+      apply prop_commutes_fun.
+    }
+    {
+      apply prop_commutes_fun.
+    }
 Qed.
     
     
