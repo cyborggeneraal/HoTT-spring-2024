@@ -135,6 +135,27 @@ Proof.
      exact p.
   - intros [f g].
     exists f.
+    (* intro q.
+    use tpair.
+  -- exists (g q).
+     induction Q as [Q hq]; simpl in *.
+     apply (f2 hq).
+  -- simpl.
+     intros [t []].
+     assert (e : t = g (f t)).
+     {
+      induction P as [P hp]; simpl in *.
+      apply (f2 hp). 
+     }
+     induction e.
+     assert (e : idpath (f t) = f2 (pr2 Q) (f t) (f t)).
+     {
+      induction Q as [Q hq]; simpl in *.
+      assert (hq' := hlevel_cumulative hq).
+      apply (f2 (hq' (f t) (f t))).
+     }
+     rewrite e.
+     apply idpath. *)
     eapply (isweq_iso f g).
   -- intro x.
      induction P as [P hp]; simpl in *.
