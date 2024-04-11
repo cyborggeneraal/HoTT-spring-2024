@@ -67,12 +67,29 @@ Defined.
 (* Hint: you may need [pathscomp0rid] and you will need
    to state your own lemma(s) *)
 
+Lemma general_circ_uniq
+    {Y X : UU} {x x' : X} {l : x = x'} {f g : X -> Y}
+    (p : f x = g x) :
+    transportf (λ x, f x = g x) l p = !maponpaths f l @ p @ maponpaths g l.
+Proof.
+  induction l.
+  simpl.
+  cbn.
+  Print pathscomp0rid.
+  Admitted.
+  (* exact !(pathscomp0rid p).
+  Admitted. *)
+
 Definition circle_uniq
     {Y : UU} {f g : S1 -> Y}
     (p : f base = g base)
     (q : transportf (λ x, x = x) p (maponpaths f loop) = maponpaths g loop) :
     ∏ (x : S1), f x = g x.
 Proof.
+  apply (@circle_ind (λ x, f x = g x) p).
+  rewrite general_circ_uniq.
+  rewrite (!q).
+  
 Admitted.
 
 (* Exercise 2 *, The non-dependent induction principle *)
