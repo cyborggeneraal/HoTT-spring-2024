@@ -11,9 +11,89 @@ and anything else from UniMath.Foundations.UnivalenceAxiom.*)
 
 (* Define the category of sets. *)
 
+Definition set_ob_mor : precategory_ob_mor.
+Proof.
+  use tpair.
+  {
+    exact hSet.
+  }
+  intros a b.
+  exact (a -> b).
+Defined.
+
+Definition set_precategory_data : precategory_data.
+Proof.
+  exists set_ob_mor.
+  unfold precategory_id_comp.
+  split.
+  {
+    intro C.
+    unfold set_ob_mor.
+    simpl.
+    apply idfun.
+  }
+  {
+    intros A B C.
+    intros f g a.
+    apply g.
+    apply f.
+    apply a.
+  }
+Defined.
+
+Definition set_precategory : precategory.
+Proof.
+  exists set_precategory_data.
+  unfold is_precategory.
+  simpl.
+  split; split.
+  {
+    intros a b f.
+    apply idpath.
+  }
+  {
+    intros a b f.
+    apply idpath.
+  }
+  {
+    intros a b c d f g h.
+    apply funextsec; intro x.
+    apply idpath.
+  }
+  {
+    intros a b c d f g h.
+    apply funextsec; intro x.
+    apply idpath.
+  }
+Defined.
+
+Lemma isaset_commutes_Π {A : UU} {B : A → UU} : 
+  (∏ a : A, isaset (B a)) → isaset (∏ a : A, B a).
+Proof.
+  intro f.
+  unfold isaset.
+  intros g g'.
+  Print isweqtoforallpathsAxiom.
+  Print isweqtoforallpathsStatement.
+  Print toforallpaths.
+  Print isweq.
+  Print weqtopaths.
+  assert (isaprop (∏ a : A, g a = g' a)).
+  {
+    apply impred_isaprop.
+    intro a.
+    apply f.
+  }
+Admitted.
+
 Theorem set_category : category.
 Proof.
-  Admitted.
+  exists set_precategory.
+  intros [A ha] [B hb].
+  apply isaset_commutes_Π.
+  intro a.
+  exact hb.
+Defined.
 
 (* Exercise 2 *)
 
@@ -22,9 +102,9 @@ Proof.
 Definition setiso (S T : hSet) : UU :=
   ∑ f : S → T ,
   ∑ g : T → S ,
-  g ∘ f ~ idfun S
+  (*g ∘ f ~ idfun S*) g ∘ f = idfun S
   ×
-  f ∘ g ~ idfun T.
+  (*f ∘ g ~ idfun T*) f ∘ g = idfun T.
 
 Definition set_idtoiso (S T : hSet) : (S = T) → (setiso S T).
 Proof.
@@ -35,10 +115,12 @@ Proof.
   - use tpair.
     + exact (idfun S).
     + split.
-      * intro s.
+      * apply funextsec.
+        intro s.
         simpl.
         apply idpath.
-      * intro s.
+      * apply funextsec.
+        intro s.
         simpl.
         apply idpath.
 Defined.
@@ -50,7 +132,60 @@ Proof.
 
 Theorem set : univalent_category.
 Proof.
-  Admitted.
+  exists set_category.
+  unfold is_univalent.
+  intros a b.
+  unfold set_category in *.
+  simpl in *.
+  use isweqhomot.
+  {
+    unfold z_iso.
+    unfold set_precategory_data.
+    simpl.
+    unfold is_z_isomorphism.
+    simpl.
+    unfold is_inverse_in_precat.
+    exact (set_idtoiso a b).
+  }
+  {
+    simpl.
+    intro x.
+    unfold set_idtoiso.
+    induction x.
+    simpl.
+    unfold identity_z_iso.
+    use total2_paths2_f.
+    {
+      apply idpath.
+    }
+    cbn.
+    unfold identity_is_z_iso.
+    use total2_paths2_f.
+    {
+      apply idpath.
+    }
+    cbn.
+    induction a as [A ha].
+    simpl.
+    assert (hfun : isaset (A → A)).
+    {
+      apply isaset_commutes_Π.
+      intro a.
+      exact ha.
+    }
+    use total2_paths2_f.
+    {
+      apply hfun.
+    }
+    {
+      apply hfun.
+    }
+  }
+  {
+    cbn.
+    apply set_univalence.
+  }
+Qed.
 
 (* Exercise 3 *)
 
