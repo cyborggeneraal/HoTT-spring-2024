@@ -67,6 +67,22 @@ Proof.
   }
 Defined.
 
+Lemma functionext_equiv {A : UU} {B : A → UU} {f f' : ∏ a : A, B a} : 
+  (f = f') ≃ (∏ a : A, f a = f' a).
+Proof.
+  use tpair.
+  apply toforallpaths.
+  simpl.
+  apply isweqtoforallpathsAxiom.
+Qed.
+
+Lemma functionex_eq {A : UU} {B : A → UU} (f f' : ∏ a : A, B a) : 
+(f = f') = (∏ a : A, f a = f' a).
+Proof.
+  apply univalence.
+  apply functionext_equiv.
+Qed.
+
 Lemma isaset_commutes_Π {A : UU} {B : A → UU} : 
   (∏ a : A, isaset (B a)) → isaset (∏ a : A, B a).
 Proof.
@@ -78,13 +94,11 @@ Proof.
   Print toforallpaths.
   Print isweq.
   Print weqtopaths.
-  assert (isaprop (∏ a : A, g a = g' a)).
-  {
-    apply impred_isaprop.
-    intro a.
-    apply f.
-  }
-Admitted.
+  rewrite (functionex_eq g g').
+  apply impred_isaprop.
+  intro a.
+  apply f.
+Qed.
 
 Theorem set_category : category.
 Proof.
@@ -102,9 +116,9 @@ Defined.
 Definition setiso (S T : hSet) : UU :=
   ∑ f : S → T ,
   ∑ g : T → S ,
-  (*g ∘ f ~ idfun S*) g ∘ f = idfun S
+  g ∘ f ~ idfun S
   ×
-  (*f ∘ g ~ idfun T*) f ∘ g = idfun T.
+  f ∘ g ~ idfun T.
 
 Definition set_idtoiso (S T : hSet) : (S = T) → (setiso S T).
 Proof.
@@ -115,12 +129,10 @@ Proof.
   - use tpair.
     + exact (idfun S).
     + split.
-      * apply funextsec.
-        intro s.
+      * intro s.
         simpl.
         apply idpath.
-      * apply funextsec.
-        intro s.
+      * intro s.
         simpl.
         apply idpath.
 Defined.
@@ -130,10 +142,93 @@ Proof.
   Admitted.
   (* You don't have to fill this proof in; it is from previous exercises.*)
 
+Lemma setiso_eq_z_iso (a b : set_category) : setiso a b ≃ z_iso a b.
+Proof.
+  use tpair.
+  {
+    intros [f [g [h h']]].
+    exists f.
+    exists g.
+    split.
+    {
+      apply funextsec.
+      exact h. 
+    }
+    {
+      apply funextsec.
+      exact h'. 
+    } 
+  }
+  simpl.
+  unfold isweq.
+  intros [f [g [h h']]].
+  use tpair.
+  {
+    use tpair.
+    {
+      exists f.
+      exists g.
+      split.
+      {
+        apply toforallpaths.
+        exact h. 
+      }
+      {
+        apply toforallpaths.
+        exact h'. 
+      } 
+    }
+    simpl.
+    use total2_paths2_f.
+    apply idpath.
+    use total2_paths2_f.
+    apply idpath.
+    cbn.
+    use total2_paths2_f.
+    {
+      admit.
+    }
+    {
+      admit. 
+    } 
+  }
+  simpl.
+  intros [[f' [g' [h2 h2']]] ht].
+Admitted.
+  unfold setiso.
+  unfold z_iso.
+  unfold is_z_isomorphism.
+  unfold is_inverse_in_precat.
+  apply univalence.
+  use tpair.
+  {
+    intros [f [g [h h']]].
+    exists f.
+    exists g.
+    split.
+    {
+      unfold compose.
+      unfold identity.
+      unfold set_category.
+      simpl.
+      apply funextsec.
+      intro x.
+      apply h.
+    }
+    {
+      unfold compose; unfold identity; unfold set_category; simpl.
+      apply funextsec; intro x.
+      apply h'. 
+    }
+  }
+  simpl.
+  Admitted.
+
 Theorem set : univalent_category.
 Proof.
   exists set_category.
   unfold is_univalent.
+  Print twooutof3c.
   intros a b.
   unfold set_category in *.
   simpl in *.
@@ -145,6 +240,7 @@ Proof.
     unfold is_z_isomorphism.
     simpl.
     unfold is_inverse_in_precat.
+    rewrite (functionex_eq (compose f g) (identity a)).
     exact (set_idtoiso a b).
   }
   {
