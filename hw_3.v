@@ -142,145 +142,96 @@ Proof.
   Admitted.
   (* You don't have to fill this proof in; it is from previous exercises.*)
 
-Lemma setiso_eq_z_iso (a b : set_category) : setiso a b ≃ z_iso a b.
+Definition z_iso_to_setiso (a b : set_category) : z_iso a b → setiso a b.
 Proof.
-  use tpair.
+  intros [f [g [h1 h2]]].
+  exists f.
+  exists g.
+  split.
   {
-    intros [f [g [h h']]].
-    exists f.
-    exists g.
-    split.
-    {
-      apply funextsec.
-      exact h. 
-    }
-    {
-      apply funextsec.
-      exact h'. 
-    } 
+    apply toforallpaths.
+    exact h1.
   }
-  simpl.
-  unfold isweq.
-  intros [f [g [h h']]].
-  use tpair.
   {
-    use tpair.
-    {
-      exists f.
-      exists g.
-      split.
-      {
-        apply toforallpaths.
-        exact h. 
-      }
-      {
-        apply toforallpaths.
-        exact h'. 
-      } 
-    }
-    simpl.
-    use total2_paths2_f.
-    apply idpath.
-    use total2_paths2_f.
-    apply idpath.
-    cbn.
-    use total2_paths2_f.
-    {
-      admit.
-    }
-    {
-      admit. 
-    } 
+    apply toforallpaths.
+    exact h2.
   }
-  simpl.
-  intros [[f' [g' [h2 h2']]] ht].
-Admitted.
-  unfold setiso.
-  unfold z_iso.
-  unfold is_z_isomorphism.
-  unfold is_inverse_in_precat.
-  apply univalence.
-  use tpair.
+Defined.
+
+Definition setiso_to_z_iso (a b : set_category) : setiso a b → z_iso a b.
+Proof.
+  intros [f [g [h1 h2]]].
+  exists f.
+  exists g.
+  split.
   {
-    intros [f [g [h h']]].
-    exists f.
-    exists g.
-    split.
-    {
-      unfold compose.
-      unfold identity.
-      unfold set_category.
-      simpl.
-      apply funextsec.
-      intro x.
-      apply h.
-    }
-    {
-      unfold compose; unfold identity; unfold set_category; simpl.
-      apply funextsec; intro x.
-      apply h'. 
-    }
+    apply funextsec.
+    exact h1.
   }
+  {
+    apply funextsec.
+    exact h2.
+  }
+Defined.
+
+Lemma setiso_eq_z_iso (a b : set_category) : isweq (setiso_to_z_iso a b).
+Proof.
+  induction a as [A ha].
+  induction b as [B hb].
+  intros [f [g h]].
+  use isweq_iso.
+  {
+    apply z_iso_to_setiso.
+  }
+  {
+    intros [f' [g' [h']]].
+    unfold setiso_to_z_iso.
+    unfold z_iso_to_setiso.
+    use total2_paths2_f. apply idpath. cbn.
+    use total2_paths2_f. apply idpath. cbn.
+    use total2_paths2_f;
+    apply funextsec;
+    intro x;
+    [apply ha | apply hb].
+  }
+  {
+    intros [f' [g' [h']]].
+    unfold z_iso_to_setiso.
+    unfold setiso_to_z_iso.
+    use total2_paths2_f. apply idpath. cbn.
+    use total2_paths2_f. apply idpath. cbn.
+    use total2_paths2_f;
+    apply isaset_commutes_Π;
+    intros;
+    [apply ha | apply hb].
+  }
+Qed.
+
+Lemma composition_idtoiso (a b : set_category) : 
+  @idtoiso _ a b = setiso_to_z_iso a b ∘ set_idtoiso a b.
+Proof.
+  apply funextsec.
+  intros [].
   simpl.
-  Admitted.
+  unfold setiso_to_z_iso.
+  use total2_paths2_f. apply idpath. cbn.
+  use total2_paths2_f. apply idpath. cbn.
+  use total2_paths2_f;
+  apply isaset_commutes_Π;
+  intros;
+  induction a as [A ha];
+  exact ha.
+Qed.
 
 Theorem set : univalent_category.
 Proof.
   exists set_category.
   unfold is_univalent.
-  Print twooutof3c.
   intros a b.
-  unfold set_category in *.
-  simpl in *.
-  use isweqhomot.
-  {
-    unfold z_iso.
-    unfold set_precategory_data.
-    simpl.
-    unfold is_z_isomorphism.
-    simpl.
-    unfold is_inverse_in_precat.
-    rewrite (functionex_eq (compose f g) (identity a)).
-    exact (set_idtoiso a b).
-  }
-  {
-    simpl.
-    intro x.
-    unfold set_idtoiso.
-    induction x.
-    simpl.
-    unfold identity_z_iso.
-    use total2_paths2_f.
-    {
-      apply idpath.
-    }
-    cbn.
-    unfold identity_is_z_iso.
-    use total2_paths2_f.
-    {
-      apply idpath.
-    }
-    cbn.
-    induction a as [A ha].
-    simpl.
-    assert (hfun : isaset (A → A)).
-    {
-      apply isaset_commutes_Π.
-      intro a.
-      exact ha.
-    }
-    use total2_paths2_f.
-    {
-      apply hfun.
-    }
-    {
-      apply hfun.
-    }
-  }
-  {
-    cbn.
-    apply set_univalence.
-  }
+  rewrite composition_idtoiso.
+  apply twooutof3c.
+  apply set_univalence.
+  apply setiso_eq_z_iso.
 Qed.
 
 (* Exercise 3 *)
