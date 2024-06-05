@@ -167,7 +167,6 @@ Proof.
   apply irrelevance_to_isaprop.
   intros f g.
   apply funextsec; intro x.
-  apply isaprop_to_irrelevance.
   apply p.
 Qed.
 

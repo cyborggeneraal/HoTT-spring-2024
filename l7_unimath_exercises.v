@@ -52,43 +52,112 @@ Qed.
 
 (* Hint: use ~isapropimpl~ and ~isweqimplimpl~.*)
 
+Print isapropimpl.
 Print isweqimplimpl.
+
+Definition fun4 {T : UU} {P : hProp} : (T → P) → (prop_trunc T → P).
+Proof.
+  intro f.
+  intro h.
+  unfold prop_trunc in h.
+  apply h.
+  exact f.
+Defined.
+
+Definition inv4 {T : UU} {P : hProp} : (prop_trunc T → P) → (T → P).
+Proof.
+  intro f.
+  intro t.
+  apply f.
+  unfold prop_trunc.
+  intro P'.
+  intro g.
+  apply g.
+  exact t.
+Defined.
 
 Theorem univ_prop_prop_trunc (T : UU) (P : hProp) : (T → P) ≃ (prop_trunc T → P).
 Proof.
-  use tpair.
-  - intros f x.
-    apply x.
-    exact f.
-  - simpl.
-    apply isweqimplimpl.
-  -- intros f t.
-     apply f.
-     intros Q g.
-     apply g.
-     exact t.
-  -- apply isapropimpl.
-     unfold isaprop.
-     simpl.
-     intros x y.
-     induction P as [P h].
-     simpl in *.
-     apply h.
-  -- induction P as [P h].
-     simpl.
-     unfold isaprop.
-     simpl.
-     intros f g.
-     use tpair.
-  --- apply funext.
-      intro x.
-      apply h.
-  --- simpl.
-      intros [].
-      unfold isaprop in *.
-      simpl in *.
+  exists fun4.
+  use isweq_iso.
+  {
+    exact inv4.
+  }
+  {
+    intro g.
+    apply funextsec.
+    intro t.
+    unfold fun4.
+    unfold inv4.
+    apply idpath.
+  }
+  {
+    intro g.
+    apply funextsec.
+    intro t.
+    induction P as [P hP].
+    simpl in *.
+    apply hP.
+  }
+Qed.
 
-    
+Theorem univ_prop_prop_trunc' (T : UU) (P : hProp) : (T → P) ≃ (prop_trunc T → P).
+Proof.
+  exists fun4.
+  apply isweqimplimpl.
+  {
+    apply inv4.
+  }
+  {
+    apply isapropimpl.
+    induction P as [P hP]. simpl in *.
+    exact hP.
+  }
+  {
+    apply isapropimpl.
+    induction P as [P hP]. simpl in *.
+    exact hP.
+  }
+Qed.
+
+Definition eq {X Y : UU} (f g : X → Y) : isaprop Y → f = g.
+Proof.
+  intro h.
+  apply funextsec.
+  intro x.
+  apply h.
+Qed.
+
+Theorem isaprop_to_irrelevance {P : UU} : isaprop P → (∏ x y : P, x = y).
+Proof.
+  intros h x y.
+  induction (h x y) as [c _].
+  exact c.
+Qed.
+
+Theorem hlevel_cumulative  {n : nat} {T : UU} (h : isofhlevel n T) : isofhlevel (S n) T.
+Proof.
+  Admitted.
+
+Theorem irrelevance_to_isaprop {P : UU} : (∏ x y : P, x = y) → isaprop P.
+Proof.
+  intros h x y.
+  apply (hlevel_cumulative).
+  exists y.
+  intro t.
+  apply h.
+Qed.
+
+Theorem isapropimpl' {X Y: UU}: isaprop Y → isaprop (X → Y).
+Proof.
+  intro h.
+  intros f g.
+  apply irrelevance_to_isaprop.
+  intros f' g'.
+  apply funextsec.
+  intro x.
+  apply h.
+Qed.
 
 
 (* Exercise 5 *)
@@ -99,5 +168,30 @@ Proof.
 
 Theorem hProp_is_Set : isaset hProp.
 Proof.
-Admitted.
+  intros [X h] [X' h'].
+  assert (isaprop (X ≃ X') → isaprop (X = X')).
+  {
+    assert ((X = X') = (X ≃ X')).
+    {
+      apply ua.
+      exists eqweqmap.
+      apply ua.
+    }
+    intro h1.
+    rewrite !X0.
+    exact h1.
+  }
+  assert ((X,, h = X',, h') = (X = X')).
+  {
+    apply weqtopaths.
+    apply subtypeInjectivity.
+    unfold isPredicate.
+    intro A.
+    apply isapropisofhlevel.
+  }
+  apply (transportf isaprop (!X1)).
+  apply X0.
+  apply isapropweqtoprop.
+  exact h'.
+Qed.
 
