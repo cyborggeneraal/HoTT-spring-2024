@@ -75,10 +75,29 @@ Proof.
   induction l.
   simpl.
   cbn.
-  Print pathscomp0rid.
-  Admitted.
-  (* exact !(pathscomp0rid p).
-  Admitted. *)
+  rewrite pathscomp0rid.
+  apply idpath.
+Qed.
+
+Theorem transport_f_g
+    {A B : UU} {f g : A -> B} {x y : A} (l : x = y) (r : f x = g x)
+  : transportf (λ x : A, f x = g x) l r = !(maponpaths f l) @ r @ maponpaths g l.
+Proof.
+  induction l.
+  cbn.
+  rewrite pathscomp0rid.
+  apply idpath.
+Qed.
+
+Theorem transport_id_id
+    {A : UU} {x y : A} (l : x = y) (r : x = x)
+  : transportf (λ x : A, x = x) l r = !l @ r @ l.
+Proof.
+  induction l.
+  cbn.
+  rewrite pathscomp0rid.
+  apply idpath.
+Qed.
 
 Definition circle_uniq
     {Y : UU} {f g : S1 -> Y}
@@ -86,11 +105,21 @@ Definition circle_uniq
     (q : transportf (λ x, x = x) p (maponpaths f loop) = maponpaths g loop) :
     ∏ (x : S1), f x = g x.
 Proof.
-  apply (@circle_ind (λ x, f x = g x) p).
-  rewrite general_circ_uniq.
-  rewrite (!q).
+  apply (@circle_ind _ p).
+  rewrite transport_f_g.
+  set (H := transport_id_id p (maponpaths f loop)).
+  rewrite H in q.
+  clear H.
+  rewrite <- q.
   
-Admitted.
+  assert (H' : ∏ {x y z w : Y} (p : x = y) (q : x = z) (r: y = w),
+    !p @ q @ !q @ p @ r = r).
+  {
+    intros x y z w [] [] [].
+    apply idpath.
+  }
+  apply (H' _ _ _ _ (maponpaths f loop) p p).
+Qed.
 
 (* Exercise 2 *, The non-dependent induction principle *)
 (* Hint, you will probably need [transportf_const] and [eqtohomot] *)
@@ -99,13 +128,28 @@ Definition circle_rec
     {Y : UU} {y_b : Y} (y_l : y_b = y_b)
   : S1 → Y.
 Proof.
-Admitted.
+  apply (@circle_ind (λ _, Y) y_b).
+
+  assert (H : ∏ (x x' : S1) (l : x = x'),
+    transportf (λ _ : S1, Y) l y_b = y_b).
+  {
+    intros x x' l.
+    induction l.
+    cbn.
+    apply idpath.
+  }
+  apply H.
+Defined.
 
 Definition circle_rec_comp_base
     {Y : UU} {y_b : Y} (y_l : y_b = y_b)
   : circle_rec y_l base = y_b.
 Proof.
-Admitted.
+  unfold circle_rec.
+  apply (circle_ind_comp_base (
+    (paths_rect S1 base (λ (x' : S1) (l : base = x'), transportf (λ _ : S1, Y) l y_b = y_b) (idpath y_b) base loop))
+  ).
+Qed.
 
 (* Hint, you will need a coherence lemma *)
 Definition circle_rec_comp_loop
@@ -127,5 +171,12 @@ Admitted.
 (* Exercise 4 *, The suspension HIT *)
 (* Give a definition of the suspension HIT as was done above for the circle *)
 
-Definition ΣA_ind_structure : UU.
-Admitted.
+Definition ΣA_ind_structure (A S : UU) (north south : S) (p : A → north = south) : UU
+  := ∏ (Y : S → UU) (y_n : Y north) (y_s : Y south) (y_p : ∏ a : A, transportf _ (p a) y_n = y_s),
+  ∑ (f : ∏ s: S, Y s)
+  (e_n : f(north) = y_n) (e_s : f(south) = y_s), 
+  ∏ a : A,  
+    maponpaths_dep f (p a)
+    = (maponpaths (transportf _ (p a)) e_n) @ y_p a @ ! e_s.
+
+Check transportf.
